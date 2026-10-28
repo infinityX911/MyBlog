@@ -1,0 +1,220 @@
+// 02-schema-additions.prisma  →  merge into prisma/schema.prisma
+//
+// Strategy chosen: EVOLVE the existing `site_settings` table (non-breaking)
+// rather than introduce a parallel `Site` model. Every new column is nullable
+// or defaulted, so `prisma migrate dev -n multi_site` ships without touching
+// existing rows or the current admin Settings panel.
+//
+// Layout of this file:
+//   A. New enum + the FULL evolved SiteSetting model (replaces your current one)
+//   B. CmsPage + CmsPageSeo — CMS-created standalone pages per site
+//   C. PageSeo — unchanged, reproduced for completeness (relation intact)
+//   D. Data-isolation enforcement pattern (Prisma client extension) — comment-only
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// A. SITE — the tenant root. One row per domain/property.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum SiteType {
+  BLOG
+  DOWNLOADER
+  PORTFOLIO
+}
+
+model SiteSetting {
+  id       Int      @id @default(autoincrement())
+  siteKey  String   @unique @map("site_key") // "blog" | "yt" — MUST equal proxy.ts SITE_ROUTES key
+
+  // ── NEW: multi-domain identity ─────────────────────────────────────────────
+  siteType     SiteType @default(BLOG) @map("site_type")
+  // subdomain of your primary zone, e.g. "tools" → tools.blogdomain.com.
+  // Nullable + unique: a site may be reachable only via its custom domain.
+  subdomain    String?  @unique @db.VarChar(63)
+  // apex/custom production domain, e.g. "ytdownloader.com". The proxy maps
+  // Host → siteKey via env for speed, but persisting the domain here keeps the
+  // admin panel authoritative and lets sitemap/canonical generation derive
+  // absolute URLs per tenant without env lookups.
+  customDomain String?  @unique @map("custom_domain") @db.VarChar(253)
+
+  // ── "Informations" tab (existing) ──────────────────────────────────────────
+  siteName     String  @map("site_name")   // Title
+  tagline      String?
+  emailAddress String? @map("email_address")
+  websiteUrl   String? @map("website_url") // canonical base URL incl. scheme
+  description  String? @db.Text
+
+  // ── "Global SEO" tab (existing) ────────────────────────────────────────────
+  defaultMetaTitle       String? @map("default_meta_title")
+  defaultMetaDescription String? @db.Text @map("default_meta_description")
+  titleSeparator         String? @default("|") @map("title_separator")
+  metaKeywords           String? @db.Text @map("meta_keywords") // comma-separated
+  twitterHandle          String? @map("twitter_handle")         // @handle
+  defaultRobotsIndex     Boolean @default(true) @map("default_robots_index")
+  defaultRobotsFollow    Boolean @default(true) @map("default_robots_follow")
+
+  // ── Branding / "Sitemap & OG" tab (existing) ───────────────────────────────
+  siteIcon       String? @map("site_icon")  // favicon URL
+  themeColor     String? @default("#5b4fcf") @map("theme_color")
+  ogImage        String? @map("og_image")   // global OG fallback image
+  sitemapEnabled Boolean @default(true) @map("sitemap_enabled")
+
+  // ── NEW: dynamic tracking / injection (no-deploy analytics changes) ────────
+  // Rendered by the site layout into <head> / GTM snippets. Keep IDs and raw
+  // snippets separate: IDs render through TYPED, escaped components (safe);
+  // headSnippet is raw HTML — admin-only input, still sanitize on save
+  // (file 09 pattern) and render only for trusted roles' content.
+  gaMeasurementId String? @map("ga_measurement_id") @db.VarChar(32)  // "G-XXXX"
+  gtmContainerId  String? @map("gtm_container_id") @db.VarChar(32)   // "GTM-XXXX"
+  headSnippet     String? @map("head_snippet") @db.Text
+
+  // ── Membership/notification toggles (existing) ─────────────────────────────
+  notifyOnRegister    Boolean @default(true) @map("notify_on_register")
+  registrationEnabled Boolean @default(true) @map("registration_enabled")
+  directMessageNotify Boolean @default(false) @map("direct_message_notify")
+  membershipApproval  Boolean @default(false) @map("membership_approval")
+
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  // ── Tenant-owned collections ───────────────────────────────────────────────
+  pages    PageSeo[] // per-page SEO for STATIC system views (Home, Posts, About…)
+  cmsPages CmsPage[] // fully dynamic CMS-created pages
+
+  @@index([customDomain])
+  @@map("site_settings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// B. CMS PAGES — standalone pages created from the admin panel
+//    (e.g. ytdownloader.com/about, /privacy, /dmca …), rendered by the
+//    [...slug] catch-all (file 11). SEO lives in a 1:1 satellite table with the
+//    IDENTICAL field shape as PostSeo/DownloadSeo, so the universal SEO engine
+//    (file 08) scores all three content kinds with one code path.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CmsPage {
+  id            Int      @id @default(autoincrement())
+  siteSettingId Int      @map("site_setting_id")
+  // slug is RELATIVE, no leading slash: "about", "legal/privacy" (nesting ok —
+  // the catch-all joins segments). Validated against RESERVED_SLUGS (file 04)
+  // at write time so a CMS page can never shadow /admin, /api, /sitemap.xml…
+  slug          String   @db.VarChar(191)
+  title         String
+  // Sanitized HTML (sanitize-html on save — file 09). NEVER store raw input.
+  content       String   @db.LongText
+  status        String   @default("draft") @db.VarChar(20) // draft | published
+  // Denormalized SEO health score (0-100), recomputed SERVER-SIDE on every
+  // save — the client's live score is advisory UI only (file 09 explains why).
+  seoScore      Int?     @map("seo_score")
+  publishedAt   DateTime? @map("published_at")
+  createdAt     DateTime? @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+
+  siteSetting SiteSetting @relation(fields: [siteSettingId], references: [id], onDelete: Cascade)
+  seo         CmsPageSeo?
+
+  // THE isolation contract: slug uniqueness is scoped to the tenant, so
+  // blog's /about and downloader's /about coexist, and every lookup MUST
+  // supply the tenant id to hit this index — you physically cannot query a
+  // page by slug alone efficiently, which nudges every call site correct.
+  @@unique([siteSettingId, slug])
+  @@index([siteSettingId, status])
+  @@map("cms_pages")
+}
+
+model CmsPageSeo {
+  id                 Int     @id @default(autoincrement())
+  cmsPageId          Int     @unique @map("cms_page_id")
+  focusKeyword       String? @map("focus_keyword")
+  metaTitle          String? @map("meta_title")
+  metaDescription    String? @db.Text @map("meta_description")
+  robotsIndex        Boolean @default(true) @map("robots_index")
+  robotsFollow       Boolean @default(true) @map("robots_follow")
+  canonicalUrl       String? @map("canonical_url")
+  ogTitle            String? @map("og_title")
+  ogDescription      String? @db.Text @map("og_description")
+  ogImage            String? @map("og_image")
+  twitterTitle       String? @map("twitter_title")
+  twitterDescription String? @db.Text @map("twitter_description")
+  schemaType         String? @default("WebPage") @map("schema_type")
+  schemaJson         String? @db.LongText @map("schema_json")
+  createdAt          DateTime? @default(now()) @map("created_at")
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+
+  cmsPage CmsPage @relation(fields: [cmsPageId], references: [id], onDelete: Cascade)
+
+  @@map("cms_page_seo")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// C. PageSeo — unchanged from your current schema (static system views:
+//    "/", "/posts", "/about" per site). Reproduced so this file validates
+//    standalone; when merging, keep your existing model as-is.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model PageSeo {
+  id              Int     @id @default(autoincrement())
+  siteSettingId   Int     @map("site_setting_id")
+  pageSlug        String  @map("page_slug")
+  pageLabel       String  @map("page_label")
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @db.Text @map("meta_description")
+  robotsIndex     Boolean @default(true) @map("robots_index")
+  robotsFollow    Boolean @default(true) @map("robots_follow")
+  canonicalUrl    String? @map("canonical_url")
+  ogTitle         String? @map("og_title")
+  ogDescription   String? @db.Text @map("og_description")
+  ogImage         String? @map("og_image")
+  createdAt       DateTime? @default(now()) @map("created_at")
+  updatedAt       DateTime? @updatedAt @map("updated_at")
+
+  siteSetting SiteSetting @relation(fields: [siteSettingId], references: [id], onDelete: Cascade)
+
+  @@unique([siteSettingId, pageSlug])
+  @@map("page_seo")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// D. ABSOLUTE DATA ISOLATION ACROSS EXECUTION PIPELINES  (pattern, not schema)
+// ─────────────────────────────────────────────────────────────────────────────
+// Schema-level scoping (@@unique([siteSettingId, slug])) prevents collisions,
+// but "absolute isolation" means a query can never FORGET the tenant filter.
+// Enforce it once, centrally, with a Prisma client extension — every public-
+// facing read goes through a tenant-bound client:
+//
+//   // lib/tenant-db.ts
+//   import { prisma } from '@/lib/prisma';
+//
+//   /** Returns a Prisma client whose CmsPage (and any future tenant-scoped
+//    *  model) queries are HARD-SCOPED to one site. Server Components call
+//    *  tenantDb((await getCurrentSite()).id) — forgetting the filter becomes
+//    *  impossible rather than merely discouraged. */
+//   export function tenantDb(siteSettingId: number) {
+//     return prisma.$extends({
+//       query: {
+//         cmsPage: {
+//           // Inject the tenant predicate into EVERY operation on the model.
+//           $allOperations({ args, query }) {
+//             (args as any).where = { ...(args as any).where, siteSettingId };
+//             return query(args);
+//           },
+//         },
+//         // When Post/Download gain a siteSettingId column (step 2 of your
+//         // roadmap: multi-blog), add identical blocks here — one line each.
+//       },
+//     });
+//   }
+//
+// Future hardening (multi-blog phase): add `siteSettingId Int` to Post,
+// Category, Download with a backfill migration (UPDATE … SET site_setting_id =
+// <blog id>), then move them into the extension above. Nothing in files 01–11
+// needs to change when you do.

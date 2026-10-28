@@ -1,0 +1,607 @@
+/* Samsung Galaxy S8+ Landscape (667 x 375) */
+@media (max-width: 740px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+
+    .thatCol {
+        flex: 0 0 98% !important;
+        max-width: 98% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv {
+        width: 10% !important;
+    }
+    .mc-duel-text{
+        margin-left: 15px;
+    }
+    .msgSupDiv {
+        text-align: right !important;
+        width: 15% !important;
+    }
+
+    .msgOptionDiv {
+        text-align: right !important;
+        width: 30% !important;
+    }
+
+    .msgChatDiv {
+        width: 45% !important;
+    }
+
+    sup {
+        left: 0 !important;
+    }
+
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+  
+   .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+
+/* ✅ iPhone SE Landscape (667 x 375) */
+@media (max-width: 667px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+
+    .thatCol {
+        flex: 0 0 98% !important;
+        max-width: 98% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv {
+        width: 10% !important;
+    }
+    .mc-duel-text{
+        margin-left: 15px;
+    }
+    .msgSupDiv {
+        text-align: right !important;
+        width: 15% !important;
+    }
+
+    .msgOptionDiv {
+        text-align: right !important;
+        width: 30% !important;
+    }
+
+    .msgChatDiv {
+        width: 45% !important;
+    }
+
+    sup {
+        left: 0 !important;
+    }
+
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+   .avater1-container {
+    height: auto !important;
+    width: auto !important;
+   }
+}
+
+
+
+/* Galaxy Z Fold 5 Landscape */
+@media (max-width: 882px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+   
+   .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+/* Samsung Galaxy A51/71 Landscape */
+@media (max-width: 914px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+
+  .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+
+
+/* iPhone XR Landscape */
+@media (max-width: 896px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+
+  .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+/* iPhone 12 Pro Landscape */
+@media (max-width: 844px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+
+  .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+/* iPhone 14 Pro Max Landscape */
+@media (max-width: 932px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+
+   .avater1-container {
+    height: auto !important;
+    width: auto !important;
+   }
+}
+
+/* Pixel 7 Landscape */
+@media (max-width: 915px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+
+  .avater1-container {
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+/* Samsung Galaxy S20 Ultra Landscape */
+@media (max-width: 915px) and (orientation: landscape) {
+    .dropdown_list .scroll {
+        overflow-y: hidden;
+    }
+    .MuiMenu-paper {
+        overflow: auto !important;
+    }
+
+    .thatCol {
+        flex: 0 0 90% !important;
+        max-width: 90% !important;
+        margin: 0 auto !important; /* center the column */
+        padding: 0 !important;
+    }
+
+    .msgAvaterDiv{
+        width: 7.666667% !important;
+    }
+    .msgSupDiv{
+        text-align: right !important;
+        width: 16% !important;
+    }
+    .msgOptionDiv{
+        text-align: right !important;
+        width: 28% !important;
+    }
+    .msgChatDiv{
+        width: 48.333333% !important;
+    }
+    sup {
+        left: 0 !important;
+    }
+    .SecondColMsg{
+        margin-top: 20px !important;
+        padding:0 !important;
+    }
+    .mc-message-chat-list ol, ul {
+        padding:0 !important;
+    }
+
+    .mc-message-chat-list{
+        overflow-y: auto;
+        height: calc(100vh) !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .mc-message-user-list {
+        padding: 0;
+        height: calc(100vh);
+        margin-top: 10px;
+    }
+
+    .chatboxAvaterDiv{
+        padding-left: 0 !important;
+    }
+    .notificationNumbers sup {
+        margin-left: 20px !important;
+    }
+    .messageNumbers sup {
+        margin-left: 20px !important;
+    }
+
+   .avater1-container {
+    height: auto !important;
+    width: auto !important;
+   }
+}
+

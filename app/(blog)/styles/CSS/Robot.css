@@ -1,0 +1,58 @@
+/* App.css */
+
+.p-astronaut-container {
+    display: flex;
+
+
+}
+.p-astronaut {
+  position: relative;
+    animation: floatAnimation 5s infinite;
+    transition: transform 0.3s ease; /* Add transition for smooth zoom effect */
+    max-width: 100%;
+    width: auto;
+
+}
+
+.p-astronaut:hover {
+    animation: zoomAnimation 5s infinite;
+}
+.p-astronaut img{
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+
+}
+
+
+
+@keyframes floatAnimation {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-50px);
+    }
+}
+
+
+@keyframes zoomAnimation {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-50px) scale(0.1);
+    }
+}
+
+@keyframes updown {
+    0% {
+        transform: translateY(-20px);
+    }
+    50% {
+        transform: translateY(20px);
+    }
+    100% {
+        transform: translateY(-20px);
+    }
+}

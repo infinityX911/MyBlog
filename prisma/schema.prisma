@@ -1,0 +1,915 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// -------------------------------------------------
+// 1. AUTHENTICATION & ROLES (RBAC)
+// -------------------------------------------------
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String
+  username      String?   @unique @db.VarChar(50)
+  gender        Gender?   @default(MALE)
+  avatarUrl     String?   @map("avatar_url")
+  phone         String?   @db.VarChar(20)
+  bio           String?   @db.Text
+  location      String?   @db.VarChar(160)            // used as "Address" in the account UI
+  status        String    @default("pending") @db.VarChar(20)  // approved | pending | blocked (admin-controlled)
+  // ── Social links ─────────────────────────────────────────
+  facebook      String?   @db.VarChar(255)
+  twitter       String?   @db.VarChar(255)
+  linkedin      String?   @db.VarChar(255)
+  instagram     String?   @db.VarChar(255)
+  youtube       String?   @db.VarChar(255)
+  pinterest     String?   @db.VarChar(255)
+  // ── Email/notification preferences (Other Settings tab) ──
+  emailActivityConnection Boolean @default(true)  @map("email_activity_connection")
+  emailActivityMessage    Boolean @default(true)  @map("email_activity_message")
+  emailProductConnection  Boolean @default(false) @map("email_product_connection")
+  emailProductMessage     Boolean @default(false) @map("email_product_message")
+  isTrusted     Boolean   @default(false) @map("is_trusted")
+  emailVerified Boolean   @default(false) @map("email_verified")
+  // Google's stable account id ("sub"), set when an account is created through
+  // Google sign-in. Null for accounts that only ever used email + password.
+  //
+  // NOT @unique, deliberately. `prisma db push` treats adding ANY unique
+  // constraint as a data-loss risk — even on a brand-new, all-NULL column — and
+  // refuses without --accept-data-loss. That refusal once killed the container
+  // at boot and took the whole site down. A plain index is enough for the
+  // lookup, and uniqueness is enforced in lib/auth.ts, which already has to
+  // check for an existing account before creating one.
+  //
+  // If you ever want the constraint at the database level too, add it by hand
+  // once and leave the schema alone:
+  //   ALTER TABLE users ADD UNIQUE INDEX users_google_id_key (google_id);
+  googleId      String?   @map("google_id") @db.VarChar(64)
+  verifyToken   String?   @map("verify_token") @db.VarChar(255)   // sha256 of the email-verify token
+  verifyExpires DateTime? @map("verify_expires")
+  rememberToken String?   @map("remember_token")
+  createdAt     DateTime? @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+  roles         UserRole[]
+  permissions   UserPermission[]
+  comments      Comment[]
+  commentReactions CommentReaction[]
+  announcements     Announcement[]
+  announcementLikes AnnouncementLike[]
+  notifications Notification[] @relation("NotificationRecipient")
+  actorNotifications Notification[] @relation("NotificationActor")
+  activities      Activity[] @relation("ActivitySubject")
+  actorActivities Activity[] @relation("ActivityActor")
+  passwordResets  PasswordReset[]
+  subscriber      Subscriber?
+  conversations   ConversationParticipant[]
+  sentMessages    Message[]  @relation("MessageSender")
+  // Every Google sign-in looks the user up by this first, so it gets an index.
+  // Plain, not unique — see the note on the field for why.
+  @@index([googleId])
+  @@map("users")
+}
+
+// -------------------------------------------------
+// 1d. PASSWORD RESETS (email link + OTP code)
+// -------------------------------------------------
+// One row per reset request. Holds a hashed email-link token AND a hashed
+// 6-digit code, so the user can reset via either channel. Short-lived +
+// attempt-limited. Delivery is pluggable (lib/mailer.ts / lib/sms.ts).
+
+model PasswordReset {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  tokenHash String    @map("token_hash") @db.VarChar(255)  // sha256 of the email-link token
+  codeHash  String?   @map("code_hash") @db.VarChar(255)   // sha256 of the 6-digit OTP
+  channel   String    @default("email") @db.VarChar(20)    // email | sms
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_resets")
+}
+
+// -------------------------------------------------
+// 1a. ACTIVITY LOG (audit trail for every action)
+// -------------------------------------------------
+// One row per meaningful action anywhere in the app. Powers the dashboard
+// "Recent Activities" feed and gives admins a full audit trail. Written via
+// lib/activity.ts → recordEvent(), which can also raise a Notification and a
+// real-time Socket.io push from the same call.
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  userId      Int?     @map("user_id")          // whose account this concerns (null = system/global)
+  actorUserId Int?     @map("actor_user_id")    // who performed the action
+  type        String   @db.VarChar(60)          // machine key, e.g. "profile.update", "post.create"
+  action      String   @db.VarChar(160)         // human title, e.g. "Updated their profile"
+  description String?  @db.Text                 // optional detail line
+  link        String?  @db.VarChar(255)         // optional deep link
+  meta        String?  @db.LongText             // optional JSON blob
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user  User? @relation("ActivitySubject", fields: [userId], references: [id], onDelete: SetNull)
+  actor User? @relation("ActivityActor",   fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([actorUserId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  roles     RolePermission[]
+  users     UserPermission[]
+
+  @@map("permissions")
+}
+
+// Pivot Tables matching your Laravel structure
+model UserRole {
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int      @map("user_id")
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId    Int      @map("role_id")
+
+  @@id([userId, roleId])
+  @@map("users_roles")
+}
+
+model UserPermission {
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int        @map("user_id")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId Int        @map("permission_id")
+
+  @@id([userId, permissionId])
+  @@map("users_permissions")
+}
+
+model RolePermission {
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId       Int        @map("role_id")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId Int        @map("permission_id")
+
+  @@id([roleId, permissionId])
+  @@map("roles_permissions")
+}
+
+// -------------------------------------------------
+// 1b. NOTIFICATION ICONS (admin-configurable per type)
+// -------------------------------------------------
+// Lets an admin choose which icon + colour represents each notification /
+// activity type (comment, login, post, etc.). Managed from
+// Management → Notification Icons. The UI resolves type → {icon,color}
+// from these rows (lib/notificationVisuals.tsx ICON_REGISTRY holds the
+// actual icon components keyed by `icon`).
+
+model NotificationIcon {
+  id        Int       @id @default(autoincrement())
+  typeKey   String    @unique @map("type_key") @db.VarChar(60)
+  label     String    @db.VarChar(120)
+  icon      String    @db.VarChar(60)   // key into ICON_REGISTRY
+  color     String    @db.VarChar(40)   // hex or rgba(...)
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("notification_icons")
+}
+
+// -------------------------------------------------
+// 1c. REDIRECTS (301/308 — protects SEO when a slug changes)
+// -------------------------------------------------
+// When a post's slug changes we auto-create a row here (old path → new
+// path). The public post page looks this up on a 404 and permanently
+// redirects, so links shared on the internet never break.
+
+model Redirect {
+  id         Int       @id @default(autoincrement())
+  fromPath   String    @unique @map("from_path") @db.VarChar(255)  // e.g. /posts/old-slug
+  toPath     String    @map("to_path") @db.VarChar(255)            // e.g. /posts/new-slug
+  statusCode Int       @default(308) @map("status_code")           // 301/308 permanent
+  hits       Int       @default(0)                                 // how many times followed
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("redirects")
+}
+
+// -------------------------------------------------
+// 2. PORTFOLIO & FRONTEND CONTENT
+// -------------------------------------------------
+
+model Project {
+  id                Int       @id @default(autoincrement())
+  projectName       String    @map("Project_name")
+  projectCategory   String    @map("Project_category")
+  projectScreenshot String    @map("Project_screenshot")
+  projectUser       String?   @map("Project_user")
+  projectLink       String    @map("Project_link")
+  createdAt         DateTime? @default(now()) @map("created_at")
+  updatedAt         DateTime? @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+model Header {
+  id          Int       @id @default(autoincrement())
+  headings    String    @map("Headings")
+  description String    @db.Text @map("Description")
+  mainImage   String?   @map("MainImage")
+  cv          String?   
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  @@map("headers")
+}
+
+model Navbar {
+  id        Int       @id @default(autoincrement())
+  title     String
+  link      String
+  logo      String?
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("navbars")
+}
+
+model Testimonial {
+  id        Int       @id @default(autoincrement())
+  name      String
+  reviews   String    @db.Text
+  imageUrl  String    @map("image_url")
+  jobTitles String    @map("job_titles")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("testimonials")
+}
+
+model ContactUs {
+  id        Int       @id @default(autoincrement())
+  firstName String    @map("FirstName")
+  lastName  String    @map("LastName")
+  email     String    @map("Email")
+  phone     String    @map("Phone")
+  msg       String    @db.Text @map("Msg")
+  read      Boolean   @default(false)
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("contact_u_s")
+}
+// -------------------------------------------------
+// 3. BLOG
+// -------------------------------------------------
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  content     String    @db.LongText
+  excerpt     String?   @db.Text
+  featuredImage String? @map("featured_image")
+  gradient      String? @db.VarChar(40)   // alternative to featuredImage: a card-gradient key
+  status      String    @default("draft")   // draft | scheduled | published
+  authorId    Int?      @map("author_id")
+  readMin       Int?      @default(5) @map("read_min")
+  featured      Boolean   @default(false)
+  viewCount   Int       @default(0) @map("view_count")
+  // When status = "scheduled", the moment the publisher loop in server.js
+  // should flip this row to "published". Null for drafts and live posts.
+  scheduledAt DateTime? @map("scheduled_at")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  primaryCategoryId Int?      @map("primary_category_id")
+  primaryCategory   Category? @relation("PostPrimaryCategory", fields: [primaryCategoryId], references: [id], onDelete: SetNull)
+  seo         PostSeo?
+  categories  PostCategory[]
+  comments    Comment[]
+  views       PostView[]
+  // Perf: the blog filters by status and orders by publishedAt/viewCount/featured.
+  @@index([status, publishedAt])
+  // The publisher loop asks "which scheduled rows are due?" every minute.
+  @@index([status, scheduledAt])
+  @@index([viewCount])
+  @@index([featured])
+  @@index([primaryCategoryId])
+  @@map("posts")
+}
+
+// -------------------------------------------------
+// 3b. POST VIEWS (time-series event log for analytics)
+// -------------------------------------------------
+// One row per counted view. Post.viewCount stays as the denormalized fast
+// total (used on cards / totals); this table is the HISTORY that powers the
+// admin "views over time" graph and any per-day/-week/top-posts analytics.
+// visitorHash is an optional coarse fingerprint (sha256 of ip+user-agent) for
+// light dedup / unique-visitor reporting later.
+
+model PostView {
+  id          Int      @id @default(autoincrement())
+  postId      Int      @map("post_id")
+  visitorHash String?  @map("visitor_hash") @db.VarChar(64)
+  // ISO 3166-1 alpha-2, e.g. "PK", "US". Deliberately the ONLY location data
+  // kept: the raw IP is hashed for de-duplication and never stored, and a
+  // country code is coarse enough that it cannot identify a reader. Nullable
+  // because every row written before this column existed has no country, and
+  // because the header is missing for direct-to-origin hits.
+  country     String?  @db.VarChar(2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([createdAt])
+  // Drives the per-post and site-wide country breakdowns without scanning
+  // every view a post ever collected.
+  @@index([postId, country])
+  @@index([country])
+  // "has this visitor already been counted for this post today?" runs on every
+  // article load, so it gets its own covering index rather than scanning every
+  // view a popular post ever collected.
+  @@index([postId, visitorHash, createdAt])
+  @@map("post_views")
+}
+
+model PostSeo {
+  id               Int     @id @default(autoincrement())
+  postId           Int     @unique @map("post_id")
+  focusKeyword     String? @map("focus_keyword")
+  metaTitle        String? @map("meta_title")
+  metaDescription  String? @db.Text @map("meta_description")
+  robotsIndex      Boolean @default(true) @map("robots_index")
+  robotsFollow     Boolean @default(true) @map("robots_follow")
+  canonicalUrl     String? @map("canonical_url")
+  ogTitle          String? @map("og_title")
+  ogDescription    String? @db.Text @map("og_description")
+  ogImage          String? @map("og_image")
+  twitterTitle     String? @map("twitter_title")
+  twitterDescription String? @db.Text @map("twitter_description")
+  schemaType       String? @map("schema_type")  // Article | BlogPosting | WebPage
+  schemaJson       String? @db.LongText @map("schema_json")
+  createdAt        DateTime? @default(now()) @map("created_at")
+  updatedAt        DateTime? @updatedAt @map("updated_at")
+
+  post             Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_seo")
+}
+
+// -------------------------------------------------
+// 3a. BLOG CATEGORIES (many-to-many via PostCategory)
+// -------------------------------------------------
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  emoji       String?   @default("📝")
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  posts        PostCategory[]
+  primaryPosts Post[]         @relation("PostPrimaryCategory")
+
+  @@map("categories")
+}
+
+model PostCategory {
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     Int      @map("post_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId Int      @map("category_id")
+
+  @@id([postId, categoryId])
+  @@map("post_categories")
+}
+
+// -------------------------------------------------
+// 4. SITE SETTINGS & SEO
+// -------------------------------------------------
+
+model SiteSetting {
+  id              Int     @id @default(autoincrement())
+  siteKey         String  @unique @map("site_key")  // e.g. "portfolio" | "blog"
+  siteName        String  @map("site_name")
+  siteType        String? @default("custom") @map("site_type") @db.VarChar(50) // portfolio | blog | downloader | custom
+  tagline         String?
+  emailAddress    String? @map("email_address")
+  websiteUrl      String? @map("website_url")
+  description     String? @db.Text
+  // SEO global defaults
+  defaultMetaTitle       String? @map("default_meta_title")
+  defaultMetaDescription String? @db.Text @map("default_meta_description")
+  titleSeparator         String? @default("|") @map("title_separator")
+  // Robots global defaults
+  defaultRobotsIndex  Boolean @default(true) @map("default_robots_index")
+  defaultRobotsFollow Boolean @default(true) @map("default_robots_follow")
+  // Branding / icons
+  siteIcon        String? @map("site_icon")       // favicon URL (/favicon.png or https://...)
+  adminLogo       String? @map("admin_logo")      // admin-panel sidebar/navbar logo image URL
+  adminBrand      String? @map("admin_brand")     // admin-panel brand text next to the logo
+  themeColor      String? @default("#5b4fcf") @map("theme_color")
+  // Open Graph / social
+  ogImage         String? @map("og_image")
+  metaKeywords    String? @db.Text @map("meta_keywords")   // comma-separated
+  twitterHandle   String? @map("twitter_handle")           // @handle
+  // Author / brand card (the sidebar card on blog pages) — admin-controlled
+  authorEnabled   Boolean @default(true) @map("author_enabled")
+  authorName      String? @map("author_name")
+  authorImage     String? @map("author_image")      // uploaded image URL (round avatar)
+  authorBio       String? @db.Text @map("author_bio")
+  authorLink      String? @map("author_link")        // optional: card links here when clicked
+  aboutStats      String? @db.LongText @map("about_stats") // JSON [{value,label}] for the About section stat boxes
+  // Google AdSense — admin-controlled ad placement
+  adsEnabled      Boolean @default(false) @map("ads_enabled")
+  adsClientId     String? @map("ads_client_id")          // "ca-pub-XXXXXXXXXXXXXXXX"
+  adsSlots        String? @db.LongText @map("ads_slots")  // JSON { afterHero, midArticle, inline, sidebar, footer, betweenPosts }
+  // Google Analytics + Search Console — admin-controlled (replaces .env)
+  gaMeasurementId String? @map("ga_measurement_id")        // "G-XXXXXXXXXX" (public tracking tag)
+  ga4PropertyId   String? @map("ga4_property_id")          // GA4 numeric property id (Data API)
+  gaClientEmail   String? @map("ga_client_email")          // service-account email (Data API)
+  gaPrivateKey    String? @db.LongText @map("ga_private_key") // service-account private key (SECRET)
+  gscVerification String? @map("gsc_verification")         // Search Console HTML-tag token
+  // Image uploads — admin-controlled (replaces .env)
+  uploadProvider    String? @default("local") @map("upload_provider") // "local" | "cloudinary"
+  cloudinaryCloud   String? @map("cloudinary_cloud")       // cloud name
+  cloudinaryKey     String? @map("cloudinary_key")         // API key
+  cloudinarySecret  String? @map("cloudinary_secret")      // API secret (SECRET)
+  // Email (SMTP) — powers signup verification, password reset, contact replies.
+  smtpHost          String? @map("smtp_host")              // e.g. smtp.gmail.com
+  smtpPort          String? @map("smtp_port")              // e.g. 465 or 587
+  smtpUser          String? @map("smtp_user")              // sending account / login
+  smtpPass          String? @map("smtp_pass")              // app password (SECRET)
+  smtpFrom          String? @map("smtp_from")              // Name <addr> (defaults to smtpUser)
+  // YouTube downloader — a Netscape-format cookies.txt pasted in from a
+  // signed-in browser. YouTube withholds most formats above 360p from anonymous
+  // clients ("Sign in to confirm you're not a bot"), so without this the quality
+  // picker silently degrades no matter what the user selects. Written to a
+  // short-lived temp file per download, never served back to a browser.
+  // SECRET: contains live session tokens.
+  ytCookies         String? @map("yt_cookies") @db.Text
+  // Sitemap
+  sitemapEnabled  Boolean @default(true) @map("sitemap_enabled")
+  // Accessibility toggles
+  notifyOnRegister    Boolean @default(true) @map("notify_on_register")
+  registrationEnabled Boolean @default(true) @map("registration_enabled")
+  directMessageNotify Boolean @default(false) @map("direct_message_notify")
+  membershipApproval  Boolean @default(false) @map("membership_approval")
+  // Public display toggles. An administrator always sees the real values;
+  // these only change what a logged-out visitor is shown. Defaults keep the
+  // site exactly as it is today, so `prisma db push` adds them without
+  // touching a single row.
+  hideViewCounts      Boolean @default(false) @map("hide_view_counts")
+  hidePostTags        Boolean @default(false) @map("hide_post_tags")
+  // Community features (admin-toggled).
+  //
+  // Two levels on purpose. *Enabled = false* switches the feature off but keeps
+  // the route alive: it renders a short "not available right now" notice, goes
+  // noindex, and drops out of the nav and sitemap — reversible, and safe while
+  // you are still deciding.
+  //
+  // *Removed = true* is the permanent one: the route 404s outright. Use it only
+  // once the section is gone for good, because a URL that has returned 404 for a
+  // while is dropped from Google's index and any links pointing at it are lost.
+  // Setting Removed also forces Enabled off (see the settings API), so the two
+  // can never disagree.
+  announcementsEnabled Boolean @default(false) @map("announcements_enabled")
+  membersEnabled       Boolean @default(false) @map("members_enabled")
+  announcementsRemoved Boolean @default(false) @map("announcements_removed")
+  membersRemoved       Boolean @default(false) @map("members_removed")
+  createdAt       DateTime? @default(now()) @map("created_at")
+  updatedAt       DateTime? @updatedAt @map("updated_at")
+
+  pages           PageSeo[]
+
+  @@map("site_settings")
+}
+
+model PageSeo {
+  id               Int     @id @default(autoincrement())
+  siteSettingId    Int     @map("site_setting_id")
+  pageSlug         String  @map("page_slug")     // e.g. "/" | "/about" | "/projects"
+  pageLabel        String  @map("page_label")    // e.g. "Home" | "About" | "Projects"
+  metaTitle        String? @map("meta_title")
+  metaDescription  String? @db.Text @map("meta_description")
+  robotsIndex      Boolean @default(true) @map("robots_index")
+  robotsFollow     Boolean @default(true) @map("robots_follow")
+  canonicalUrl     String? @map("canonical_url")
+  ogTitle          String? @map("og_title")
+  ogDescription    String? @db.Text @map("og_description")
+  ogImage          String? @map("og_image")
+  createdAt        DateTime? @default(now()) @map("created_at")
+  updatedAt        DateTime? @updatedAt @map("updated_at")
+
+  siteSetting      SiteSetting @relation(fields: [siteSettingId], references: [id], onDelete: Cascade)
+
+  @@unique([siteSettingId, pageSlug])
+  @@map("page_seo")
+}
+
+
+model Download {
+  id            Int           @id @default(autoincrement())
+  title         String
+  slug          String        @unique
+  excerpt       String?       @db.Text
+  fileUrl       String        @map("file_url")       // actual file path / external URL
+  fileType      String        @default("PDF")        // PDF, ZIP, Template, etc.
+  fileSize      String?       @map("file_size")      // "2.4 MB"
+  icon          String?       @default("📄")
+  gradient      String?       @default("gradientPurple")
+  image         String?       @db.VarChar(500)   // alternative to gradient: a real image URL
+  category      String?       @default("Tech")
+  tags          String?       @db.Text               // comma-separated: "React,JavaScript"
+  content       String?       @db.LongText           // rich HTML body for the detail page
+  downloadCount Int           @default(0) @map("download_count")
+  featured      Boolean       @default(false)
+  free          Boolean       @default(true)
+  status        String        @default("draft")      // draft | scheduled | published
+  authorId      Int?          @map("author_id")
+  scheduledAt   DateTime?     @map("scheduled_at")   // when status = "scheduled": go live at this time
+  publishedAt   DateTime?     @map("published_at")
+  createdAt     DateTime?     @default(now()) @map("created_at")
+  updatedAt     DateTime?     @updatedAt @map("updated_at")
+
+  seo           DownloadSeo?
+  comments      Comment[]
+
+  @@index([status, scheduledAt])   // publisher loop: "which downloads are due?"
+  @@map("downloads")
+}
+
+model DownloadSeo {
+  id                 Int       @id @default(autoincrement())
+  downloadId         Int       @unique @map("download_id")
+  focusKeyword       String?   @map("focus_keyword")
+  metaTitle          String?   @map("meta_title")
+  metaDescription    String?   @db.Text @map("meta_description")
+  robotsIndex        Boolean   @default(true) @map("robots_index")
+  robotsFollow       Boolean   @default(true) @map("robots_follow")
+  canonicalUrl       String?   @map("canonical_url")
+  ogTitle            String?   @map("og_title")
+  ogDescription      String?   @db.Text @map("og_description")
+  ogImage            String?   @map("og_image")
+  twitterTitle       String?   @map("twitter_title")
+  twitterDescription String?   @db.Text @map("twitter_description")
+  schemaType         String?   @default("WebPage") @map("schema_type")
+  schemaJson         String?   @db.LongText @map("schema_json")
+  createdAt          DateTime? @default(now()) @map("created_at")
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+
+  download           Download  @relation(fields: [downloadId], references: [id], onDelete: Cascade)
+
+  @@map("download_seo")
+}
+
+// -------------------------------------------------
+// 5. COMMENTS (replies supported via self-relation)
+// -------------------------------------------------
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  postId    Int?      @map("post_id")
+  downloadId Int?     @map("download_id")
+  cmsPageId  Int?     @map("cms_page_id")
+  announcementId Int? @map("announcement_id")
+  userId    Int       @map("user_id")
+  content   String    @db.Text
+  status    String    @default("pending") @map("status") // pending | approved | rejected
+  parentId  Int?      @map("parent_id")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  post      Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  download  Download? @relation(fields: [downloadId], references: [id], onDelete: Cascade)
+  cmsPage   CmsPage?  @relation(fields: [cmsPageId], references: [id], onDelete: Cascade)
+  announcement Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  reactions CommentReaction[]
+
+  @@index([postId, status])
+  @@index([downloadId, status])
+  @@index([cmsPageId, status])
+  @@index([announcementId, status])
+  @@index([parentId])
+  @@map("comments")
+}
+
+// Likes / hearts on comments. One row per (comment, user, type) so a user
+// can both "like" and "heart" the same comment but not twice with the same type.
+model CommentReaction {
+  id        Int      @id @default(autoincrement())
+  commentId Int      @map("comment_id")
+  userId    Int      @map("user_id")
+  type      String   @db.VarChar(10)   // "like" | "heart"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, type])
+  @@index([commentId])
+  @@map("comment_reactions")
+}
+
+// -------------------------------------------------
+// 6. NOTIFICATIONS (admin panel — replaces dummy frontend)
+// -------------------------------------------------
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @map("user_id")           // which admin this belongs to (null = all admins)
+  type        String                              // "comment" | "register" | "contact" | etc.
+  message     String    @db.Text
+  link        String?                             // e.g. /admin/myprojects/blog/comments
+  read        Boolean   @default(false)
+  actorUserId Int?      @map("actor_user_id")      // the user who triggered this (e.g. the commenter) — lets us show their live avatar/name
+  createdAt   DateTime? @default(now()) @map("created_at")
+
+  user        User?     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor       User?     @relation("NotificationActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// -------------------------------------------------
+// 7. MESSAGING  (peer-to-peer DM  +  visitor support chat)
+// -------------------------------------------------
+// One Conversation has many participants (registered users) and many messages.
+//   - Peer DM        : isSupport = false, exactly 2 user participants.
+//   - Support chat   : isSupport = true, an anonymous visitor (guestId/guestName)
+//                      plus the admin who accepts. status drives the bot→human
+//                      handoff (bot → waiting → live → closed). Messages with
+//                      isBot = true / senderId null are from the bot/system.
+
+model Conversation {
+  id            Int       @id @default(autoincrement())
+  isSupport     Boolean   @default(false) @map("is_support")
+  status        String    @default("open") @db.VarChar(20)   // open | waiting | live | closed
+  // Anonymous-visitor fields (support chats only)
+  guestId       String?   @map("guest_id") @db.VarChar(64)   // random id stored in the visitor's browser
+  guestName     String?   @map("guest_name") @db.VarChar(120)
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  @@index([isSupport, status])
+  @@index([guestId])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  userId         Int       @map("user_id")
+  lastReadAt     DateTime? @map("last_read_at")   // everything before this is "read" for this user
+  hiddenAt       DateTime? @map("hidden_at")       // user soft-deleted the chat from THEIR view (re-appears on a newer message)
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  senderId       Int?      @map("sender_id")      // null = bot / system message
+  body           String    @db.Text
+  isBot          Boolean   @default(false) @map("is_bot")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User?        @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// -------------------------------------------------
+// 6. YOUTUBE DOWNLOADER — CMS PAGES + ANALYTICS
+// -------------------------------------------------
+// Standalone dynamic pages (About, Privacy, Contact, Disclaimer …) for the
+// yt-downloader site, each rendered by app/(yt-downloader)/yt/[...slug]. Scoped
+// by siteKey so the same slug can exist on other sites. SEO lives in a 1:1
+// satellite with the SAME field shape as PostSeo/DownloadSeo → the existing
+// SeoPanel + analyzeSeo() score all three with one code path.
+
+// Per-site footer, fully admin-editable (columns + social links + bottom text).
+// Stored as JSON so columns/links/socials can be freely added/removed.
+model FooterConfig {
+  id         Int       @id @default(autoincrement())
+  siteKey    String    @unique @map("site_key") @db.VarChar(50)
+  columns    String?   @db.LongText   // JSON: [{ heading, links: [{ label, url }] }]
+  socials    String?   @db.LongText   // JSON: [{ platform, url }]
+  bottomText String?   @db.Text @map("bottom_text")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("footer_config")
+}
+
+model CmsPage {
+  id          Int       @id @default(autoincrement())
+  siteKey     String    @default("yt") @map("site_key") @db.VarChar(50) // which site owns it
+  slug        String    @db.VarChar(191)   // relative, no leading slash: "about", "legal/privacy"
+  title       String
+  content     String    @db.LongText       // sanitized HTML (sanitize-html on save)
+  status      String    @default("draft") @db.VarChar(20) // draft | scheduled | published
+  scheduledAt DateTime? @map("scheduled_at")  // when status = "scheduled": go live at this time
+  seoScore    Int?      @map("seo_score")  // denormalized, recomputed server-side on save
+  blocks      String?   @db.LongText  // JSON array of page blocks (text / posts / downloads / hero / newsletter)
+  sidebar     String?   @db.LongText  // JSON: tutorial-sidebar sections [{title, items:[{label,href}]}] (empty/null = no sidebar)
+  heroBg      String?   @db.VarChar(500)  // tutorial hero: a gradient key (gradientPurple…) OR an image URL
+  tags        String?   @db.VarChar(500)  // comma-separated tags shown in the tutorial footer/share
+  layout      String?   @db.VarChar(20)   // non-tutorial page layout: "wide" (default) | "boxed" (post-style)
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  seo         CmsPageSeo?
+  comments    Comment[]
+
+  @@unique([siteKey, slug])          // per-site slug isolation
+  @@index([siteKey, status])
+  @@index([status, scheduledAt])     // publisher loop: "which pages are due?"
+  @@map("cms_pages")
+}
+
+model CmsPageSeo {
+  id                 Int       @id @default(autoincrement())
+  cmsPageId          Int       @unique @map("cms_page_id")
+  focusKeyword       String?   @map("focus_keyword")
+  metaTitle          String?   @map("meta_title")
+  metaDescription    String?   @db.Text @map("meta_description")
+  robotsIndex        Boolean   @default(true) @map("robots_index")
+  robotsFollow       Boolean   @default(true) @map("robots_follow")
+  canonicalUrl       String?   @map("canonical_url")
+  ogTitle            String?   @map("og_title")
+  ogDescription      String?   @db.Text @map("og_description")
+  ogImage            String?   @map("og_image")
+  twitterTitle       String?   @map("twitter_title")
+  twitterDescription String?   @db.Text @map("twitter_description")
+  schemaType         String?   @default("WebPage") @map("schema_type")
+  schemaJson         String?   @db.LongText @map("schema_json")
+  createdAt          DateTime? @default(now()) @map("created_at")
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+
+  cmsPage            CmsPage   @relation(fields: [cmsPageId], references: [id], onDelete: Cascade)
+
+  @@map("cms_page_seo")
+}
+
+// Every successful conversion writes one row → powers the Analytics view.
+model DownloadLog {
+  id         Int      @id @default(autoincrement())
+  siteKey    String   @default("yt") @map("site_key") @db.VarChar(50)
+  videoId    String   @map("video_id") @db.VarChar(20)
+  videoTitle String?  @map("video_title")
+  ext        String   @db.VarChar(10)                  // mp4, mp3, …
+  quality    String   @db.VarChar(20)                  // 720p, 320kbps, …
+  category   String   @db.VarChar(10)                  // VIDEO | AUDIO
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([siteKey, createdAt])
+  @@index([ext])
+  @@map("download_logs")
+}
+
+// -------------------------------------------------
+// 7. DYNAMIC NAVBAR (nested — supports dropdowns)
+// -------------------------------------------------
+// Front-end blog navbar links, editable from the admin panel. A NavItem with
+// no parent is a top-level link; children (parentId set) render as a dropdown
+// under it. Ordered by sortOrder. siteKey lets other sites have their own nav.
+
+model NavItem {
+  id        Int       @id @default(autoincrement())
+  siteKey   String    @default("blog") @map("site_key") @db.VarChar(50)
+  label     String
+  url       String    @default("#")
+  icon      String?   @db.VarChar(16)          // optional emoji shown before the label
+  parentId  Int?      @map("parent_id")
+  sortOrder Int       @default(0) @map("sort_order")
+  visible   Boolean   @default(true)
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  parent    NavItem?  @relation("NavChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  NavItem[] @relation("NavChildren")
+
+  @@index([siteKey, parentId, sortOrder])
+  @@map("nav_items")
+}
+
+// Admin-configured YouTube channels shown in the "Our Channels" sidebar block.
+// `channelRef` is a channel ID (UC…) or a handle (@name); the app enriches it
+// live from the YouTube Data API (needs YOUTUBE_API_KEY).
+model YoutubeChannel {
+  id         Int       @id @default(autoincrement())
+  channelRef String    @map("channel_ref") @db.VarChar(191)
+  label      String?   @db.VarChar(191)   // optional override name
+  sortOrder  Int       @default(0) @map("sort_order")
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("youtube_channels")
+}
+
+// A logged-in user who opted to get notified on new posts (email + web push).
+model Subscriber {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @unique @map("user_id")
+  email        String
+  wantsEmail   Boolean   @default(true) @map("wants_email")
+  wantsPush    Boolean   @default(true) @map("wants_push")
+  pushEndpoint String?   @db.Text @map("push_endpoint")
+  pushKeys     String?   @db.Text @map("push_keys")   // JSON { p256dh, auth }
+  createdAt    DateTime? @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscribers")
+}
+
+// Admin-authored announcement ("status") shown on the public Announcements page.
+// Members can like + comment (comments reuse the polymorphic Comment model).
+model Announcement {
+  id        Int       @id @default(autoincrement())
+  title     String?
+  body      String    @db.Text
+  image     String?                                  // optional banner/image URL
+  pinned    Boolean   @default(false)
+  authorId  Int       @map("author_id")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  author    User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes     AnnouncementLike[]
+  comments  Comment[]
+
+  @@index([pinned, createdAt])
+  @@map("announcements")
+}
+
+model AnnouncementLike {
+  id             Int          @id @default(autoincrement())
+  announcementId Int          @map("announcement_id")
+  userId         Int          @map("user_id")
+  createdAt      DateTime?    @default(now()) @map("created_at")
+
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
+  @@map("announcement_likes")
+}

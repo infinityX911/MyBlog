@@ -1,0 +1,88 @@
+/* Tutorial left-nav — docs-style, theme-aware (uses the blog's CSS variables). */
+
+.nav {
+    /* Rendered inside the overlay drawer, which handles its own scrolling. */
+    padding-right: 4px;
+}
+
+.navTitle {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 20px;
+    color: var(--text, #14142b);
+    line-height: 1.2;
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 2px;
+}
+
+.sectionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    background: none;
+    border: none;
+    padding: 11px 10px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text, #23233c);
+    cursor: pointer;
+    text-align: left;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+.sectionBtn:hover {
+    background: rgba(125, 125, 125, 0.07);
+}
+
+.chev {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--muted, #9aa0b3);
+    transition: transform 0.2s ease;
+}
+.chevOpen {
+    transform: rotate(90deg);
+}
+
+.items {
+    list-style: none;
+    margin: 2px 0 10px;
+    padding: 0;
+}
+
+.item {
+    display: block;
+    padding: 8px 14px 8px 22px;
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: var(--muted, #6b7280);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.item:hover {
+    color: var(--text, #14142b);
+    background: rgba(125, 125, 125, 0.09);
+}
+.itemActive {
+    color: var(--text, #14142b);
+    font-weight: 600;
+    background: rgba(125, 125, 125, 0.14);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────────────
+   The vars above fall back to LIGHT colors; in dark mode the text would be dark
+   on a dark rail (invisible). Override the module classes only under .dark. */
+:global(.dark) .navTitle { color: #eef0f8; }
+:global(.dark) .sectionBtn { color: #e2e4f0; }
+:global(.dark) .sectionBtn:hover { background: rgba(255, 255, 255, 0.06); }
+:global(.dark) .chev { color: #7880a4; }
+:global(.dark) .item { color: #aeb4cf; }
+:global(.dark) .item:hover { color: #ffffff; background: rgba(255, 255, 255, 0.07); }
+:global(.dark) .itemActive { color: #ffffff; background: rgba(108, 99, 255, 0.28); }

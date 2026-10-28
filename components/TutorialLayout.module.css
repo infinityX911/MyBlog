@@ -1,0 +1,275 @@
+/* Admin-panel-style tutorial layout.
+   Layout math: fixed navbar = 58px, toggle strip = 52px → rail starts at 110px. */
+
+.shell {
+    position: relative;
+}
+
+/* Full-width strip that sticks just under the navbar and never shifts with the
+   sidebar (it sits ABOVE the pushed content, like the admin top bar). */
+.topstrip {
+    position: sticky;
+    top: 58px;
+    z-index: 30;
+    margin-top: 58px;
+    height: 52px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* Toggle sits right at the rail's right edge (the sidebar boundary), like the
+       admin panel. No bottom border → the white strip + white rail read as one
+       continuous piece of the navbar (nothing separating them). */
+    padding: 0 22px 0 222px;
+    background: var(--white, #fff);
+    /* Full-width divider under the breadcrumb bar, like the reference. */
+    border-bottom: 1px solid var(--border, #ececf2);
+}
+@media (max-width: 820px) {
+    .topstrip { padding-left: 16px; }
+}
+
+/* Round icon toggle — matches the admin panel's circular nav button.
+   Position is FIXED: it never moves when the sidebar opens/closes. */
+.toggle {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: var(--off, #eef0f6) !important;
+    color: var(--text, #23233c) !important;
+    font-size: 23px !important;
+}
+.toggle:hover { background: rgba(125, 125, 125, 0.16) !important; }
+
+/* Breadcrumb trail beside the toggle (Tutorials › Title › Active section). */
+.crumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.92rem;
+}
+.crumb {
+    color: var(--muted, #6b7280);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.crumbActive {
+    color: var(--text, #23233c);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.crumbSep {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: var(--muted, #9aa0b3);
+}
+/* On phones keep only the last (active) crumb so it doesn't wrap. */
+@media (max-width: 620px) {
+    .crumbs .crumb:first-child,
+    .crumbs .crumbSep:first-of-type { display: none; }
+}
+
+/* Fixed left rail — always sits right below the strip (110px), slides in/out. */
+.rail {
+    position: fixed;
+    top: 110px;
+    left: 0;
+    bottom: 0;
+    z-index: 25;
+    width: 264px;
+    background: var(--white, #fff);
+    border-right: 1px solid var(--border, #ececf2);
+    overflow-y: auto;
+    padding: 22px 18px;
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+}
+.shellOpen .rail { transform: translateX(0); }
+
+/* Content shifts right by the rail width while the rail is open. */
+.main {
+    transition: margin-left 0.28s ease;
+}
+.shellOpen .main { margin-left: 264px; }
+
+/* CodeWithHarry-style content column: flush-left after the sidebar, wide,
+   no floating card. Generous left/right gutters. */
+/* Full-width so the RIGHT sidebar always pins to the right edge, independent of
+   the left rail. Opening the rail only shifts .main's left edge (margin-left),
+   so the article column reflows while the right sidebar stays put. */
+.content {
+    max-width: none;
+    margin: 0;
+    padding: 34px 26px 64px 46px;
+    box-sizing: border-box;
+}
+@media (max-width: 820px) {
+    .content { padding: 26px 18px 48px; }
+}
+
+/* Tutorial grid override (applied alongside PostDetail's .grid): minmax(0,1fr)
+   lets the article column actually FILL its share next to the right sidebar —
+   plain `1fr` is `minmax(auto,1fr)`, whose min-content sizing leaves a big gap
+   with flex/Bootstrap-row content (the "thin cards + gap" bug). */
+.tgrid {
+    grid-template-columns: minmax(0, 1fr) 292px !important;
+    gap: 26px !important;
+}
+.tgrid > main { min-width: 0; }
+/* (the ≤1024px collapse for .tgrid lives in the Mobile responsiveness block
+   near the bottom of this file — don't add a second one here) */
+
+/* Lesson title — big, bold, left-aligned, aligned with the body's left edge. */
+.lessonTitle {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0 0 28px;
+    color: var(--text, #0d1b2a);
+}
+
+/* Neutralise the article body's own horizontal padding so its text lines up
+   with the H1 (the .content gutter is the single source of indentation). */
+.bodyReset {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* ── Prev / Next lesson pager ───────────────────────────────────────────── */
+.pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px 0 8px;
+}
+.pagerBtn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 48%;
+    padding: 14px 18px;
+    border: 1px solid var(--border, #ececf2);
+    border-radius: 12px;
+    background: var(--white, #fff);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.pagerBtn:hover {
+    border-color: var(--purple, #6c63ff);
+    background: rgba(108, 99, 255, 0.04);
+    transform: translateY(-1px);
+}
+/* Both buttons always render; the one with nowhere to go is shown greyed out
+   and unclickable, so the pair keeps its left/right shape on the first and
+   last lesson. */
+.pagerDisabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.pagerDisabled .pagerDir,
+.pagerDisabled .pagerLabel { color: var(--muted, #8a8fa8); }
+.pagerDisabled .pagerLabel { font-weight: 600; font-size: 0.92rem; }
+
+/* Equal halves so Previous sits hard left and Next hard right. */
+.pagerBtn { flex: 1 1 0; min-width: 0; max-width: none; }
+.pagerNext { text-align: right; }
+.pagerDir {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--purple, #6c63ff);
+}
+.pagerLabel {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text, #23233c);
+    line-height: 1.25;
+}
+
+/* No overlay on desktop. */
+.backdrop { display: none; }
+
+/* Phones: the rail OVERLAYS (content doesn't shift) with a tap-to-close backdrop. */
+@media (max-width: 820px) {
+    .shellOpen .main { margin-left: 0; }
+    .rail {
+        /* Same 110px as desktop (navbar 58 + strip 52). It used to start at
+           58px, so the drawer cut straight across the breadcrumb strip and read
+           as a floating panel instead of something hanging off the bar. */
+        top: 110px;
+        width: 82vw;
+        /* 82vw is fine on a phone but ~670px on a tablet — cap it. */
+        max-width: 320px;
+        z-index: 3000;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.14);
+    }
+    .backdrop {
+        display: block;
+        position: fixed;
+        /* Dim ONLY the content area. `inset: 0` also dimmed the navbar and the
+           breadcrumb strip, so the header looked greyed out while the drawer
+           stayed bright — that mismatch is what made it look cut off. */
+        top: 110px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Softer and cooler than flat 45% black, which read as a harsh slab next
+           to the bright white drawer. A touch of blur pushes it behind. */
+        background: rgba(15, 23, 42, 0.28);
+        backdrop-filter: blur(2px);
+        z-index: 2900;
+    }
+}
+
+/* Phones keep the original 82vw drawer — full width was too much. The sliver of
+   content beside it just needed a gentler backdrop (above), not removing. */
+
+/* ── Dark theme ─────────────────────────────────────────────────────────────
+   Match the blog's dark palette (bg #0d1a35, card #162848, border #243660,
+   text #e2e4f0, muted #7880a4). Scoped to .dark so light mode is untouched. */
+:global(.dark) .topstrip { background: #0f1c38; border-bottom-color: #243660; }
+:global(.dark) .toggle { background: #162848 !important; color: #e2e4f0 !important; }
+:global(.dark) .toggle:hover { background: #1c3157 !important; }
+:global(.dark) .crumb { color: #7880a4; }
+:global(.dark) .crumbActive { color: #eef0f8; }
+:global(.dark) .crumbSep { color: #55608a; }
+:global(.dark) .rail { background: #0f1c38; border-right-color: #243660; }
+:global(.dark) .lessonTitle { color: #eef0f8; }
+:global(.dark) .pagerBtn { background: #162848; border-color: #243660; }
+:global(.dark) .pagerBtn:hover { border-color: #6c63ff; background: #1c3157; }
+:global(.dark) .pagerLabel { color: #e2e4f0; }
+:global(.dark) .pagerDir { color: #8f88ff; }
+:global(.dark) .pagerDisabled .pagerLabel,
+:global(.dark) .pagerDisabled .pagerDir { color: #7880a4; }
+
+/* Phones: keep Previous left / Next right, just tighter. */
+@media (max-width: 560px) {
+    .pager { gap: 10px; margin: 28px 0 8px; }
+    .pagerBtn { padding: 11px 13px; border-radius: 10px; }
+    .pagerDir { font-size: 0.72rem; }
+    .pagerLabel { font-size: 0.86rem; }
+    .pagerDisabled .pagerLabel { font-size: 0.8rem; }
+}
+
+/* ── Mobile responsiveness ───────────────────────────────────────────────────
+   .tgrid forces a 2-column (article + 292px right sidebar) grid with !important,
+   which OVERRIDES PostDetail's own 1024px "collapse to 1 column" rule — so on
+   phones/tablets the layout stayed 2-column and broke. Collapse it here too so
+   tutorial + custom CMS pages stack (widgets go below the content) exactly like
+   the responsive blog home page. */
+@media (max-width: 1024px) {
+    /* Same min-content trap as PostDetail's .grid: plain `1fr` is
+       `minmax(auto, 1fr)`, so an unwrappable code line sets the column's
+       minimum width and blows the layout past the viewport. */
+    .tgrid { grid-template-columns: minmax(0, 1fr) !important; gap: 0 !important; }
+    .tgrid > * { min-width: 0; max-width: 100%; }
+    /* The content wrapper must not exceed the screen either. */
+    .content { max-width: 100%; }
+}

@@ -1,0 +1,9 @@
+-- 013_youtube_channels.sql
+CREATE TABLE IF NOT EXISTS youtube_channels (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  channel_ref  VARCHAR(191) NOT NULL,
+  label        VARCHAR(191) NULL,
+  sort_order   INT NOT NULL DEFAULT 0,
+  created_at   DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

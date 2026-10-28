@@ -1,0 +1,64 @@
+/* Medium devices (tablets to laptops) */
+@media only screen and (min-width: 601px) and (max-width: 767px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-left: 65px;
+    }
+    .p-Skills-Container {
+        margin:0;
+    }
+    .p-Skills-div {
+        padding:0
+    }
+    .p-background-image-left {
+        top: -7%;
+        position: relative;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+    .p-paragraph-testimonial p{
+        height: auto;
+        width: auto;
+    }
+
+    .p-avater-paragraph{
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+        width: auto;
+        padding: 62px;
+        padding-bottom: 0;
+    }
+
+    .p-avater-profile{
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+        width: auto;
+        padding-right: 62px;
+        padding-bottom: 62px;
+        padding-left: 62px;
+    }
+
+   .testimonial-main-container {
+    margin-left: 0; 
+    margin-right: 0; 
+}
+
+
+}

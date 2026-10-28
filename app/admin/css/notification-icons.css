@@ -1,0 +1,77 @@
+/* Management → Notification Icons page */
+
+.nicons-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Save button (account.css isn't loaded on this page, so define it here) */
+.nicons-head .acc-save-btn,
+.acc-save-btn {
+    background: #0858f7;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 16px rgba(8, 88, 247, 0.28);
+    transition: background 0.18s, transform 0.1s;
+}
+.acc-save-btn:hover:not(:disabled) { background: #0646cc; }
+.acc-save-btn:active:not(:disabled) { transform: scale(0.98); }
+.acc-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.nicons-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+
+.nicon-row {
+    display: grid;
+    grid-template-columns: 48px 200px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+}
+body.dark .nicon-row { border-color: rgba(255, 255, 255, 0.1); }
+
+.nicon-preview {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.nicon-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.nicon-label { font-weight: 600; font-size: 14px; color: #2c3146; }
+.nicon-key { font-size: 11px; opacity: 0.55; color: #2c3146; }
+body.dark .nicon-label { color: #e8eefc; }
+body.dark .nicon-key { color: #9fb3d1; opacity: 0.8; }
+
+.nicon-icons { display: flex; flex-wrap: wrap; gap: 6px; }
+.nicon-pick {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.04);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+}
+.nicon-pick:hover { background: rgba(8, 88, 247, 0.1); }
+body.dark .nicon-pick { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); }
+
+.nicon-colors { display: flex; gap: 6px; }
+.nicon-color {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer;
+}
+.nicon-color.active { border-color: #111; box-shadow: 0 0 0 2px #fff inset; }
+body.dark .nicon-color.active { border-color: #fff; box-shadow: 0 0 0 2px #112143 inset; }
+
+@media (max-width: 900px) {
+    .nicon-row { grid-template-columns: 40px 1fr; row-gap: 12px; }
+}

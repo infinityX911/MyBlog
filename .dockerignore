@@ -1,0 +1,34 @@
+# Keep the build context small + secrets out of the image.
+node_modules
+.next
+.git
+.gitignore
+npm-debug.log*
+
+# Never bake secrets into the image — they're injected at runtime via env_file.
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Local-only / scratch
+*.bat
+cookies.txt
+cookies.example.txt
+dev-server.log
+tsconfig.tsbuildinfo
+files.zip
+_chk.mjs
+_parked
+docs
+*.md
+!README.md
+
+# Persisted at runtime via a Docker volume, not baked in.
+public/uploads
+
+# Editor / OS junk
+.vscode
+.idea
+.DS_Store
+Thumbs.db

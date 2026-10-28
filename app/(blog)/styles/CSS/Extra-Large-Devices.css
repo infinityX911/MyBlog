@@ -1,0 +1,102 @@
+/* Large devices (laptops to desktops)
+devices: iPad Mini,iPad Air, laptop also when you shrink it to 700px
+
+*/
+/* this is for ipad mini*/
+@media only screen and (min-width: 768px) and (max-width: 819px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-background-image-left {
+        top: 116%;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+    .p-Skills-div {
+        padding: 60px 0;
+    }
+
+}
+
+/*this is for ipad air*/
+@media only screen and (min-width: 820px) and (max-width: 1023px) {
+
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-background-image-left {
+        top: 102%;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+}
+
+
+/*this is for ipad pro*/
+@media only screen and (min-width: 821px) and (max-width: 1024px) {
+
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-background-image-left {
+        top: 82%;
+    }
+    .p-Projects-Container {
+        margin-left:0;
+        margin-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+}

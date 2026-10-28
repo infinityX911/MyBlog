@@ -1,0 +1,123 @@
+/* Small devices (phones to small tablets)
+ not my cell ....
+ */
+@media only screen and (min-width: 375px) and (max-width: 600px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-logo-div{
+        padding-left: 0.5rem;
+        padding-top: 1.5rem;
+    }
+    .p-Skills-Container {
+        margin:0;
+    }
+    .p-Skills-div {
+        padding:0
+    }
+    .p-background-image-left {
+        top: -7%;
+        position: relative;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+        margin-top:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+        align-items: normal;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+    .p-banner-headings h1{
+        font-size: 40px;
+    }
+    .p-header-img{
+        margin-top: 50px;
+    }
+
+    .p-testimonial-main-container{
+        margin:0;
+    }
+
+    .p-testimonial-box1 h2{
+        font-size: 29px;
+        line-height: 56px;
+    }
+
+    .p-paragraph-testimonial p{
+        height: auto;
+        width: auto;
+        font-size: 12px;
+    }
+
+    .p-chat-container {
+        bottom: 3px !important;
+        right: 3px !important;
+    }
+
+    .testimonial-main-container {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .avater1-container {
+        width: auto;
+        height:auto;
+    }
+    .laptop {
+        height: auto !important;
+    }
+
+    .timeline p {
+        text-align: center !important;
+    }
+
+    /* ===================== */
+    /* MOBILE HOVER EFFECTS  */
+    /* ===================== */
+
+    /* Fill the dot with rebeccapurple on mobile hover/tap */
+    .timeline li:hover::before {
+        background: #7f5af0 !important;
+        box-shadow: 0 0 25px #7f5af0, 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        transform: scale(1.15) !important;
+        border-color: #7f5af0 !important;
+    }
+
+    /* Laptop glow with rebeccapurple on mobile hover/tap */
+    .timeline li:hover .laptop {
+        box-shadow: 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        border-color: #2a2a2a !important;
+        transition: all 0.3s ease !important;
+    }
+
+    /* FIXED: Timeline Alignment for Small Devices */
+    /* We reset both Left and Right to align to the Left with padding */
+    .timeline li.right,
+    .timeline li.left {
+        left: 0 !important;
+        padding-left: 3.5rem !important; /* Space for line */
+        padding-right: 0 !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+    
+    .timeline li.right::before,
+    .timeline li.left::before {
+        left: 9px !important;
+        right: auto !important;
+    }
+}

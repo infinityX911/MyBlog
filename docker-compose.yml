@@ -1,0 +1,84 @@
+# docker-compose.yml — production stack: Next.js app + MariaDB.
+#
+#   docker compose up -d --build      # build image + start everything
+#   docker compose logs -f app        # watch app logs
+#   docker compose down               # stop (data survives in named volumes)
+#
+# The DB is NOT published to the host — only the app (on 127.0.0.1:3000) is,
+# so nginx on the host reverse-proxies it with HTTPS. Nothing DB-related is
+# reachable from the internet.
+
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      # Lower memory footprint for a small ($3) VPS.
+      MARIADB_AUTO_UPGRADE: "1"
+    command: >-
+      --innodb-buffer-pool-size=128M
+      --max-connections=50
+      --performance-schema=OFF
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    # No `ports:` — DB is only reachable inside the compose network.
+
+  # Proof-of-origin token generator for the YouTube downloader.
+  #
+  # WHY: YouTube answers "Sign in to confirm you're not a bot" to requests from
+  # datacentre IPs like this VPS — the same code works fine from a home
+  # connection. A PO token is the value a real browser computes to prove the
+  # request came from a browser; this service generates one so yt-dlp can send
+  # it. It replaces the usual workaround of feeding yt-dlp a signed-in account's
+  # cookies, so no Google account is involved at all.
+  #
+  # It is NOT a guarantee — the upstream project says so plainly, and YouTube
+  # keeps tightening this. Cookies remain available as a fallback in
+  # Admin → YouTube Downloader → Settings.
+  #
+  # No `ports:` — only the app container talks to it, over the compose network.
+  bgutil-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider:latest
+    restart: unless-stopped
+    init: true
+    # No healthcheck on purpose: the upstream image documents no health endpoint,
+    # and guessing one would only mark a working container "unhealthy". The app
+    # depends on service_started, and a missing token degrades to the old
+    # behaviour rather than breaking anything.
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      # Where the app's yt-dlp should ask for PO tokens (see lib/yt/ytdlp.ts).
+      YT_POT_BASE_URL: http://bgutil-provider:4416
+    depends_on:
+      db:
+        condition: service_healthy
+      # Not service_healthy: a token provider that is slow to boot must never
+      # stop the website itself from starting.
+      bgutil-provider:
+        condition: service_started
+    ports:
+      # Bind to localhost only; host nginx terminates TLS and proxies here.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # Persist locally-uploaded images across rebuilds/restarts.
+      - uploads:/app/public/uploads
+
+volumes:
+  dbdata:
+  uploads:

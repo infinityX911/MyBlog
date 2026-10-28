@@ -1,0 +1,72 @@
+{
+  "name": "portfolio-next",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "lint": "eslint",
+    "seed:yt": "ts-node prisma/seed-yt-pages.ts",
+    "seed:download": "ts-node prisma/seed-download-example.ts",
+    "seed:navbar": "ts-node prisma/seed-navbar.ts"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@emotion/use-insertion-effect-with-fallbacks": "^1.2.0",
+    "@google-analytics/data": "^4.12.1",
+    "@mui/icons-material": "^9.1.1",
+    "@mui/material": "^9.1.1",
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "cloudinary": "^2.10.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.21.0",
+    "mariadb": "^3.5.2",
+    "mysql2": "^3.22.4",
+    "next": "16.2.6",
+    "next-auth": "^4.24.14",
+    "next-themes": "^0.4.6",
+    "nodemailer": "^7.0.7",
+    "prisma": "^7.8.0",
+    "pusher-js": "^8.5.0",
+    "react": "19.2.4",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "19.2.4",
+    "react-icons": "^5.6.0",
+    "recharts": "^3.8.1",
+    "sanitize-html": "^2.17.5",
+    "sharp": "^0.35.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.0",
+    "autoprefixer": "^10.5.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "browserslist": [
+    "last 2 years",
+    "not dead"
+  ]
+}

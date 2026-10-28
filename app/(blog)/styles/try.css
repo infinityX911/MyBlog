@@ -1,0 +1,200 @@
+/* ===================== */
+/* Global Styles */
+/* ===================== */
+body {
+    background: #000 !important;
+}
+
+/* Section title */
+.projects-section h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 4rem;
+    text-shadow: 0 0 10px #7f5af0, 0 0 20px #7f5af0;
+    color:white;
+    text-align: center;
+}
+
+/* ===================== */
+/* Timeline Container */
+/* ===================== */
+.timeline {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* Vertical line */
+.timeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: repeating-linear-gradient(
+            to bottom,
+            #7f5af0,
+            #7f5af0 10px,
+            transparent 10px,
+            transparent 20px
+    );
+    transform: translateX(-50%);
+    z-index: 0;
+    opacity: 0.8;
+}
+
+/* ===================== */
+/* Timeline Items */
+/* ===================== */
+.timeline li {
+    position: relative;
+    margin: 4rem 0;
+    width: 50%;
+    list-style: none;
+    z-index: 1;
+}
+
+/* Left side */
+.timeline li.left {
+    left: 0;
+    text-align: right;
+    padding-right: 3rem;
+}
+
+/* Right side */
+.timeline li.right {
+    left: 50%;
+    text-align: left;
+    padding-left: 3rem;
+}
+
+/* Circle marker */
+.timeline li::before {
+    content: "";
+    position: absolute;
+    top: 1rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid #7f5af0;
+    background: #000;
+    box-shadow: 0 0 12px #7f5af0, 0 0 25px rgba(127, 90, 240, 0.6);
+    transition: all 0.3s ease-in-out;
+    z-index: 2;
+}
+
+.timeline li.left::before {
+    right: -6px;
+}
+
+.timeline li.right::before {
+    left: -16px;
+}
+
+.timeline li:hover::before {
+    background: #7f5af0;
+    transform: scale(1.1);
+}
+
+/* ===================== */
+/* Laptop Mockup */
+/* ===================== */
+.laptop {
+    position: relative;
+    width: 480px;
+    height: 280px;
+    border: 12px solid #1a1a1a;
+    border-radius: 20px;
+    background: #000;
+    box-shadow: 0 0 25px #7f5af0, 0 0 50px rgba(127, 90, 240, 0.6);
+    margin: 0 auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.laptop:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px #7f5af0, 0 0 60px rgba(127, 90, 240, 0.9);
+}
+
+.laptop::after {
+    content: "";
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    width: 140px;
+    height: 14px;
+    background: #1a1a1a;
+    border-radius: 7px;
+    transform: translateX(-50%);
+}
+
+.laptop .screen {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.laptop .screen iframe {
+    width: 1200px;   /* force desktop width */
+    height: 800px;   /* force desktop height */
+    border: none;
+    transform: scale(0.4);  /* shrink down to fit inside laptop */
+    transform-origin: top left;
+}
+
+/* ===================== */
+/* Project Title */
+/* ===================== */
+.timeline p {
+    margin-top: 1rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #b794f4;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(183, 148, 244, 0.8);
+}
+
+/* ===================== */
+/* Responsive Styles */
+/* ===================== */
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 20px; /* move line to left */
+        transform: none;
+    }
+
+    .timeline li {
+        width: 100%;
+        padding-left: 3.5rem;
+        text-align: left;
+    }
+
+    .timeline li.left,
+    .timeline li.right {
+        left: 0;
+        text-align: left;
+        padding-right: 0;
+    }
+
+    .timeline li.right::before {
+        left: 11px;
+    }
+
+    .timeline li::before {
+        left: 10px;
+        right: auto;
+    }
+
+    .laptop {
+        width: 95%; /* fit screen */
+        height: 220px;
+        margin: 1.5rem 0;
+    }
+
+    .timeline p {
+        text-align: left;
+    }
+}

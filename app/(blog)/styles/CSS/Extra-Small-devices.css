@@ -1,0 +1,246 @@
+/*This whole file works for my cell....*/
+
+/* Extra small devices (phones) */
+@media only screen and (max-width: 280px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .p-logo-div{
+        padding-left: 0.5rem;
+        padding-top: 1.5rem;
+    }
+    .p-Skills-Container {
+        margin:0;
+    }
+    .p-Skills-div {
+        padding:0
+    }
+    .p-background-image-left {
+        top: -7%;
+        position: relative;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+        margin-top:0;
+    }
+    .p-tabs{
+        max-width: 100%;
+        width:auto;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+    .p-banner-headings h1{
+        font-size: 40px;
+    }
+    .p-header-img{
+        margin-top: 50px;
+    }
+    .p-testimonial-main-container {
+        margin:0;
+    }
+    .p-heading-testimonial h2{
+        height: auto;
+        width: auto;
+        font-size: 29px;
+        line-height: 56px;
+    }
+
+    .p-paragraph-testimonial p{
+        height: auto;
+        font-size: 12px;
+    }
+    .p-tabs{
+        align-items: normal;
+    }
+
+    .p-chat-container {
+        bottom: 3px !important;
+        right: 3px !important;
+    }
+
+    .testimonial-main-container {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .avater1-container {
+        width: auto;
+        height: auto;
+    }
+    .laptop {
+        height: auto !important;
+    }
+
+    .timeline p {
+        text-align: center !important;
+    }
+
+    /* ===================== */
+    /* MOBILE HOVER EFFECTS  */
+    /* ===================== */
+
+    .timeline li:hover::before {
+        background: #7f5af0 !important;
+        box-shadow: 0 0 25px #7f5af0, 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        transform: scale(1.15) !important;
+        border-color: #7f5af0 !important;
+    }
+
+    .timeline li:hover .laptop {
+        box-shadow: 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        border-color: #2a2a2a !important;
+        transition: all 0.3s ease !important;
+    }
+
+    /* FIXED: Timeline Alignment for Extra Small Devices */
+    .timeline li.right,
+    .timeline li.left {
+        left: 0 !important;
+        padding-left: 3.5rem !important;
+        padding-right: 0 !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    .timeline li.right::before,
+    .timeline li.left::before {
+        left: 9px !important;
+        right: auto !important;
+    }
+}
+
+
+/* Extra small devices (phones) 280-374px */
+@media only screen and (min-width: 280px) and (max-width: 374px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-logo-div{
+        padding-left: 0.5rem;
+        padding-top: 1.5rem;
+    }
+
+    .p-Skills-Container {
+        margin:0;
+    }
+
+    .p-Skills-div {
+        padding:0
+    }
+    .p-background-image-left {
+        top: -7%;
+        position: relative;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+        margin-top:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+        align-items: normal;
+    }
+
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+    .p-banner-headings h1{
+        font-size: 40px;
+    }
+    .p-header-img{
+        margin-top: 50px;
+    }
+    .p-testimonial-main-container {
+        margin:0;
+    }
+    .p-heading-testimonial h2{
+        height: auto;
+        width: auto;
+        font-size: 29px;
+        line-height: 56px;
+    }
+
+    .p-paragraph-testimonial p{
+        height: auto;
+        width: auto;
+        line-height: 24.8px;
+        font-size: 12px;
+    }
+
+    .p-chat-container {
+        bottom: 3px !important;
+        right: 3px !important;
+    }
+
+    .testimonial-main-container {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .avater1-container {
+        width: auto;
+        height: auto;
+    }
+
+    .laptop {
+        height: auto !important;
+    }
+
+    .timeline p{
+        text-align: center !important;
+    }
+
+    /* ===================== */
+    /* MOBILE HOVER EFFECTS  */
+    /* ===================== */
+
+    .timeline li:hover::before {
+        background: #7f5af0 !important;
+        box-shadow: 0 0 25px #7f5af0, 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        transform: scale(1.15) !important;
+        border-color: #7f5af0 !important;
+    }
+
+    .timeline li:hover .laptop {
+        box-shadow: 0 0 40px rgba(102, 51, 153, 0.6) !important;
+        border-color: #2a2a2a !important;
+        transition: all 0.3s ease !important;
+    }
+
+    /* FIXED: Timeline Alignment for Extra Small Devices (larger range) */
+    .timeline li.right,
+    .timeline li.left {
+        left: 0 !important;
+        padding-left: 3.5rem !important;
+        padding-right: 0 !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    .timeline li.right::before,
+    .timeline li.left::before {
+        left: 9px !important;
+        right: auto !important;
+    }
+}

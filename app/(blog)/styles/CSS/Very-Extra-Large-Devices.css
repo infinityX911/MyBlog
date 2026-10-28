@@ -1,0 +1,128 @@
+/* Large devices (laptops to desktops)
+
+ Devices:iPad Pro,Surface Pro 7...
+ */
+@media only screen and (min-width: 912px) and (max-width: 1023px) {
+    /*All the Containers*/
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-navbar-container{
+        max-width: 100%;
+        max-height: 100%;
+        padding: 0;
+    }
+    .p-navbar-col-div {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 0.5rem;
+        padding-left: 2.5rem;
+    }
+    .p-background-image-left {
+        top: 80%;
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+
+}
+
+/* Media query for iPad Pro */
+@media only screen
+and (device-width: 1024px)
+and (device-height: 1366px)
+and (-webkit-min-device-pixel-ratio: 2) {
+    .p-background-image-left {
+        top: 80%; /* Adjust as needed */
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+}
+
+/* Media query for Next Hub */
+@media only screen
+and (device-width: 1024px)
+and (device-height: 600px)
+and (-webkit-min-device-pixel-ratio: 1) {
+    .p-background-image-left {
+        top: 180%; /* Adjust as needed */
+    }
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+}
+
+/*this was meant to be for next hub max , but since laptop has the same widh i will use it for laptop max screen
+while below this you may find for next hub max as it has a height of 800px
+*/
+@media only screen and (min-width: 1025px) and (max-width: 1280px) {
+    .p-Projects-Container {
+        padding-left:0;
+        padding-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+}
+@media only screen
+and (device-width: 1280px)
+and (device-height: 800px)
+and (-webkit-min-device-pixel-ratio: 1) {
+
+    .p-background-image-left {
+        top: 138%;
+    }
+    .p-Projects-Container {
+        margin-left:0;
+        margin-right:0;
+    }
+    .p-tabs{
+        width:100%;
+        left:0;
+    }
+    .p-Projects-paragraph p {
+        width:auto;
+    }
+
+}
+
